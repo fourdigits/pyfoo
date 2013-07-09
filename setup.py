@@ -3,13 +3,14 @@ from setuptools import setup, find_packages
 version = '1.0'
 
 LONG_DESCRIPTION = """
-Various snippets compiled for re-use.
+A Python Wrapper for the Wufoo REST API
+http://wufoo.com/docs/api/v3/
 """
 
 setup(
-    name='django-general',
+    name='pyfoo',
     version=version,
-    description="django-general",
+    description="pyfoo",
     long_description=LONG_DESCRIPTION,
     classifiers=[
         "Programming Language :: Python",
