@@ -2,7 +2,7 @@ import urllib
 import urllib2
 import json
 
-from UserList import UserList
+# from UserList import UserList
 from UserDict import UserDict
 
 
@@ -12,7 +12,28 @@ BOOLEAN_FIELDS = ('IsAccountOwner', 'IsRequired', 'IsPublic', 'CreateForms',
 WUFOO_BASE_URL = 'https://%s.wufoo.com/api/v3/'
 
 
-class WufooObject(object):
+class WufooBase(object):
+    """
+    Base class for Wufoo API classes.
+    """
+    def setUrl(self):
+        """
+        Set self.base_url for current class.
+        """
+        if getattr(self, 'base_url', False):
+            return self.base_url
+        elif getattr(self, 'api', False):
+            self.base_url = WUFOO_BASE_URL % self.api.account
+        elif getattr(self, 'form', False):
+            self.base_url = WUFOO_BASE_URL % self.form.api.account
+        elif getattr(self, 'account', False):
+            self.base_url = WUFOO_BASE_URL % self.account
+        else:
+            self.base_url = (WUFOO_BASE_URL % 'DELETE').replace('DELETE.', '')
+        return self.base_url
+
+
+class WufooObject(WufooBase):
     def __init__(self, api, json_object):
         super(WufooObject, self).__init__()
         self.api = api
@@ -31,12 +52,6 @@ class WufooObject(object):
                     setattr(self, key, json_object[key])
         self.setUrl()
 
-    def setUrl(self):
-        if getattr(self, 'base_url', False):
-            return self.base_url
-        self.base_url = WUFOO_BASE_URL % self.api.account
-        return self.base_url
-
 
 class SearchParameter(object):
     def __init__(self, field, operator, value):
@@ -45,7 +60,7 @@ class SearchParameter(object):
         self.value = value
 
 
-class Entry(UserDict):
+class Entry(UserDict, WufooBase):
     def __init__(self, fields=None, form=None):
         #super(Entry, self).__init__(data=fields)
         if fields:
@@ -58,18 +73,6 @@ class Entry(UserDict):
         if not self.has_key('LastUpdatedBy'):
             self['LastUpdatedBy'] = None
         self.setUrl()
-
-    def setUrl(self):
-        """
-        Duplicated shortcut to define self.base_url
-        """
-        if getattr(self, 'base_url', False):
-            return self.base_url
-        if self.form != None:
-            self.base_url = WUFOO_BASE_URL % self.form.api.account
-        else:
-            self.base_url = None
-        return self.base_url
 
     @property
     def comments(self):
@@ -287,7 +290,7 @@ class Comment(WufooObject):
     pass
 
 
-class PyfooAPI(object):
+class PyfooAPI(WufooBase):
     def __init__(self, account=None, api_key=None, email=None, password=None,
                         integration_key=None):
         self.account = account
@@ -305,15 +308,6 @@ class PyfooAPI(object):
             response = self.make_call(url, data, 'POST')
             self.api_key = response['ApiKey']
             self.account = response['Subdomain']
-
-    def setUrl(self):
-        if getattr(self, 'base_url', False):
-            return self.base_url
-        if self.account:
-            self.base_url = WUFOO_BASE_URL % self.account
-        else:
-            self.base_url = (WUFOO_BASE_URL % 'DELETE').replace('DELETE.', '')
-        return self.base_url
 
     def make_call(self, url, post_params=None, method=None):
         password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
@@ -368,6 +362,15 @@ class PyfooAPI(object):
             self._forms = [Form(self, form_dict) \
                            for form_dict in forms_json['Forms']]
         return self._forms
+
+    # Get Single Form
+    def getForm(self, hash):
+        try:
+            form_json = self.make_call('%sforms/%s.json' % \
+                                            (self.setUrl(), hash))
+        except urllib2.HTTPError:
+            return False
+        return Form(self, form_json['Forms'][0])
 
     # Reports
     @property
