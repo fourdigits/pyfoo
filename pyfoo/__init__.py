@@ -264,9 +264,7 @@ class PyfooAPI(object):
         post_params_string = ''
         if post_params:
             post_params_string = ''.join(post_params.keys())
-        test_script = open('scripts/%s%s.json' % (url.replace('/', '_'), post_params_string), 'w')
-        test_script.write(json_string)
-        test_script.close()
+        
         try:
             json_object = json.loads(json_string)
             
