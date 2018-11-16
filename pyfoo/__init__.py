@@ -269,8 +269,8 @@ class PyfooAPI(object):
             json_object = json.loads(json_string)
             
         except Exception as ex:
-            print url
-            print json_string
+            print(url)
+            print(json_string)
             
             raise ex
         return json_object
