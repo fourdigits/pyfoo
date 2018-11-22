@@ -1,9 +1,7 @@
 import urllib
-import urllib2
 import json
     
-from UserList import UserList
-from UserDict import UserDict
+from collections import UserDict
 
 BOOLEAN_FIELDS = ('IsAccountOwner', 'IsRequired', 'IsPublic', 'CreateForms', 
         'CreateReports', 'CreateThemes', 'AdminAccess', 'Success')
@@ -40,9 +38,9 @@ class Entry(UserDict):
         else:
             self.data = {}
         self.form = form
-        if not self.has_key('LastUpdated'):
+        if not self.get('LastUpdated', None):
             self['LastUpdated'] = None
-        if not self.has_key('LastUpdatedBy'):
+        if not self.get('LastUpdatedBy', None):
             self['LastUpdatedBy'] = None
     
     @property
@@ -124,9 +122,9 @@ class Form(WufooObject):
     def add_entry(self, entry):
         post_params = {}
         for field in self.fields:
-            if entry.has_key(field.Title):
+            if entry.get(field.Title, None):
                 post_params[field.ID] = entry[field.Title]
-            elif entry.has_key(field.ID):
+            elif entry.get(field.ID, None):
                 post_params[field.ID] = entry[field.ID]
         url = 'https://%s.wufoo.com/api/v3/forms/%s/entries.json' % (self.api.account, self.Hash)
         response_json = self.api.make_call(url, post_params=post_params)
@@ -240,19 +238,19 @@ class PyfooAPI(object):
             self.account = response['Subdomain']
             
     def make_call(self, url, post_params=None, method=None):
-        password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        password_mgr = urllib.request.HTTPPasswordMgrWithDefaultRealm()
         if self.account:
             top_level_url = "https://%s.wufoo.com/api/v3" % self.account
         else:
             top_level_url = "https://wufoo.com/api/v3"
         password_mgr.add_password(None, top_level_url, self.api_key, "footastic")
-        handler = urllib2.HTTPBasicAuthHandler(password_mgr)
-        opener = urllib2.build_opener(handler)
-        urllib2.install_opener(opener)
+        handler = urllib.request.HTTPBasicAuthHandler(password_mgr)
+        opener = urllib.request.build_opener(handler)
+        urllib.request.install_opener(opener)
         
         if post_params:
             data = urllib.urlencode(post_params)
-            request = urllib2.Request(url, data=data)
+            request = urllib.request.Request(url, data=data)
             if method:
                 request.get_method = lambda: method
             response = opener.open(request)
