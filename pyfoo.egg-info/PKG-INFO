@@ -1,0 +1,16 @@
+Metadata-Version: 1.1
+Name: pyfoo
+Version: 0.1.1.dev0
+Summary: pyfoo
+Home-page: UNKNOWN
+Author: Wufoo.com
+Author-email: support@wufoo.com
+License: MIT
+Description: 
+        A Python Wrapper for the Wufoo REST API
+        http://wufoo.com/docs/api/v3/
+        
+Keywords: wufoo,pyfoo
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
